@@ -3,6 +3,7 @@ import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
 import ApartmentPage from './pages/ApartmentPage';
 import Statistics from './pages/Statistics';
+import BackupPage from './pages/BackupPage';
 import { ActivePage } from './lib/types';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
       case 'roma': return <ApartmentPage location="Roma" />;
       case 'nettuno': return <ApartmentPage location="Nettuno" />;
       case 'statistics': return <Statistics />;
+      case 'backup': return <BackupPage />;
       default: return <Dashboard onNavigate={setActivePage} />;
     }
   }

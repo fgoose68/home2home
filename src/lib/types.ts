@@ -49,4 +49,4 @@ export type BillingType =
   | 'annual'
   | 'free';
 
-export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics';
+export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics' | 'backup';
