@@ -176,7 +176,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Bottom label */}
         <p className="text-center text-slate-600 text-xs mt-4">
-          Roma &amp; Nettuno — {new Date().getFullYear()}
+          Roma &amp; Nettuno &nbsp;·&nbsp; <span className="text-slate-500 font-medium">Ver.1.1Lug2026</span>
         </p>
       </div>
     </div>
