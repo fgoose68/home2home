@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import ApartmentPage from './pages/ApartmentPage';
 import Statistics from './pages/Statistics';
 import BackupPage from './pages/BackupPage';
+import DocumentsPage from './pages/DocumentsPage';
 import LoginPage from './pages/LoginPage';
 import { ActivePage } from './lib/types';
 
@@ -26,6 +27,7 @@ export default function App() {
       case 'roma': return <ApartmentPage location="Roma" />;
       case 'nettuno': return <ApartmentPage location="Nettuno" />;
       case 'statistics': return <Statistics />;
+      case 'documenti': return <DocumentsPage />;
       case 'backup': return <BackupPage />;
       default: return <Dashboard onNavigate={setActivePage} />;
     }

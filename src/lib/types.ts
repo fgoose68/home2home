@@ -49,4 +49,15 @@ export type BillingType =
   | 'annual'
   | 'free';
 
-export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics' | 'backup';
+export interface ApartmentDocument {
+  id: string;
+  apartment_id: string;
+  name: string;
+  description: string | null;
+  storage_path: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_at: string;
+}
+
+export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics' | 'backup' | 'documenti';

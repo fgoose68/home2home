@@ -1,4 +1,4 @@
-import { Building2, Home, LayoutDashboard, BarChart3, Menu, X, Archive, LogOut } from 'lucide-react';
+import { Building2, Home, LayoutDashboard, BarChart3, Menu, X, Archive, LogOut, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import Logo from './Logo';
 import { ActivePage } from '../lib/types';
@@ -14,6 +14,7 @@ const navItems = [
   { id: 'roma' as ActivePage, label: 'Roma', icon: Building2 },
   { id: 'nettuno' as ActivePage, label: 'Nettuno', icon: Home },
   { id: 'statistics' as ActivePage, label: 'Statistiche', icon: BarChart3 },
+  { id: 'documenti' as ActivePage, label: 'Documenti', icon: FolderOpen },
   { id: 'backup' as ActivePage, label: 'Backup', icon: Archive },
 ];
 
