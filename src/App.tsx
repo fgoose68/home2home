@@ -4,10 +4,16 @@ import Dashboard from './pages/Dashboard';
 import ApartmentPage from './pages/ApartmentPage';
 import Statistics from './pages/Statistics';
 import BackupPage from './pages/BackupPage';
+import LoginPage from './pages/LoginPage';
 import { ActivePage } from './lib/types';
 
 export default function App() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem('h2h_auth') === '1');
   const [activePage, setActivePage] = useState<ActivePage>('dashboard');
+
+  if (!authed) {
+    return <LoginPage onLogin={() => setAuthed(true)} />;
+  }
 
   function renderPage() {
     switch (activePage) {
