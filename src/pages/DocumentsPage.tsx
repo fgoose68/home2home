@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FileText, FileImage, FileSpreadsheet, File, Download, Trash2,
-  Upload, FolderOpen, AlertCircle, CheckCircle2, Loader2, X, ChevronDown, ChevronRight
+  Upload, AlertCircle, CheckCircle2, Loader2, X,
+  ChevronDown, ChevronRight, FolderOpen,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Apartment, ApartmentDocument } from '../lib/types';
@@ -18,16 +19,14 @@ const ALLOWED_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'text/plain',
 ];
-
-// Year range: 5 years back + current + 1 ahead
 const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => CURRENT_YEAR - 5 + i);
 
 function fileIcon(mime: string) {
-  if (mime === 'application/pdf') return <FileText size={18} className="text-red-500" />;
-  if (mime.startsWith('image/')) return <FileImage size={18} className="text-blue-500" />;
-  if (mime.includes('excel') || mime.includes('spreadsheet')) return <FileSpreadsheet size={18} className="text-green-600" />;
-  if (mime.includes('word') || mime.includes('document')) return <FileText size={18} className="text-blue-700" />;
-  return <File size={18} className="text-slate-400" />;
+  if (mime === 'application/pdf') return <FileText size={16} className="text-red-500 flex-shrink-0" />;
+  if (mime.startsWith('image/')) return <FileImage size={16} className="text-blue-500 flex-shrink-0" />;
+  if (mime.includes('excel') || mime.includes('spreadsheet')) return <FileSpreadsheet size={16} className="text-green-600 flex-shrink-0" />;
+  if (mime.includes('word') || mime.includes('document')) return <FileText size={16} className="text-blue-700 flex-shrink-0" />;
+  return <File size={16} className="text-slate-400 flex-shrink-0" />;
 }
 
 function formatSize(bytes: number) {
@@ -37,60 +36,58 @@ function formatSize(bytes: number) {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
 }
 
-// ─── Year section (collapsible) ───────────────────────────────────────────────
+// ─── Year accordion ───────────────────────────────────────────────────────────
 
 interface YearSectionProps {
   year: number;
   docs: ApartmentDocument[];
-  accent: Record<string, string>;
+  isOrange: boolean;
   defaultOpen: boolean;
   onDownload: (doc: ApartmentDocument) => void;
-  onDelete: (doc: ApartmentDocument) => Promise<void>;
+  onDelete: (doc: ApartmentDocument) => void;
   deleting: string | null;
 }
 
-function YearSection({ year, docs, accent, defaultOpen, onDownload, onDelete, deleting }: YearSectionProps) {
+function YearSection({ year, docs, isOrange, defaultOpen, onDownload, onDelete, deleting }: YearSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const pill = isOrange ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
 
   return (
     <div className="border border-slate-200 rounded-xl overflow-hidden">
-      {/* Year header */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors"
+        className="flex items-center justify-between w-full px-3 py-2 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
-          {open ? <ChevronDown size={15} className="text-slate-400" /> : <ChevronRight size={15} className="text-slate-400" />}
+          {open ? <ChevronDown size={13} className="text-slate-400" /> : <ChevronRight size={13} className="text-slate-400" />}
           <span className="text-sm font-bold text-slate-700">{year}</span>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${accent.light} ${accent.text} border ${accent.border}`}>
-            {docs.length} doc{docs.length !== 1 ? 'umenti' : 'umento'}
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${pill}`}>
+            {docs.length}
           </span>
         </div>
       </button>
-
-      {/* Doc list */}
       {open && (
         <div className="divide-y divide-slate-100">
           {docs.map((doc) => (
-            <div key={doc.id} className="flex items-start gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
-              <div className="mt-0.5 flex-shrink-0">{fileIcon(doc.mime_type)}</div>
+            <div key={doc.id} className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 transition-colors group">
+              {fileIcon(doc.mime_type)}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">{doc.name}</p>
+                <p className="text-xs font-medium text-slate-800 truncate">{doc.name}</p>
                 {doc.description && (
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{doc.description}</p>
+                  <p className="text-xs text-slate-400 truncate">{doc.description}</p>
                 )}
-                <p className="text-xs text-slate-400 mt-0.5">{formatSize(doc.file_size)} · {formatDate(doc.uploaded_at)}</p>
+                <p className="text-xs text-slate-400">{formatSize(doc.file_size)} · {formatDate(doc.uploaded_at)}</p>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   onClick={() => onDownload(doc)}
                   className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Scarica / Visualizza"
+                  title="Scarica"
                 >
-                  <Download size={15} />
+                  <Download size={13} />
                 </button>
                 <button
                   onClick={() => onDelete(doc)}
@@ -98,7 +95,7 @@ function YearSection({ year, docs, accent, defaultOpen, onDownload, onDelete, de
                   className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
                   title="Elimina"
                 >
-                  {deleting === doc.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  {deleting === doc.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                 </button>
               </div>
             </div>
@@ -109,84 +106,63 @@ function YearSection({ year, docs, accent, defaultOpen, onDownload, onDelete, de
   );
 }
 
-// ─── Apartment column ─────────────────────────────────────────────────────────
+// ─── Apartment panel ──────────────────────────────────────────────────────────
 
-interface ApartmentColumnProps {
+interface ApartmentPanelProps {
   apartment: Apartment;
   docs: ApartmentDocument[];
   onUploaded: () => void;
   onDeleted: (doc: ApartmentDocument) => void;
 }
 
-function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentColumnProps) {
+function ApartmentPanel({ apartment, docs, onUploaded, onDeleted }: ApartmentPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState('');
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [descModal, setDescModal] = useState<{ file: File } | null>(null);
+  const [modal, setModal] = useState<{ file: File } | null>(null);
   const [description, setDescription] = useState('');
   const [docYear, setDocYear] = useState(CURRENT_YEAR);
 
   const isOrange = apartment.color_theme === 'orange';
   const accent = isOrange
-    ? { bg: 'bg-orange-500', light: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600', ring: 'ring-orange-300' }
-    : { bg: 'bg-blue-500', light: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600', ring: 'ring-blue-300' };
+    ? { bar: 'bg-orange-500', ring: 'ring-orange-300', text: 'text-orange-600', border: 'border-orange-300', light: 'bg-orange-50', btn: 'bg-orange-500 hover:bg-orange-400' }
+    : { bar: 'bg-blue-500', ring: 'ring-blue-300', text: 'text-blue-600', border: 'border-blue-300', light: 'bg-blue-50', btn: 'bg-blue-500 hover:bg-blue-400' };
 
   function showNotice(type: 'success' | 'error', msg: string) {
     setNotice({ type, msg });
     setTimeout(() => setNotice(null), 4000);
   }
 
-  function validateFile(file: File): string | null {
-    if (!ALLOWED_TYPES.includes(file.type)) return `Tipo file non supportato: ${file.type || 'sconosciuto'}`;
-    if (file.size > MAX_MB * 1024 * 1024) return `File troppo grande (max ${MAX_MB} MB)`;
-    return null;
-  }
-
   function pickFile(file: File) {
-    const err = validateFile(file);
-    if (err) { showNotice('error', err); return; }
+    if (!ALLOWED_TYPES.includes(file.type)) { showNotice('error', `Tipo non supportato: ${file.type || '?'}`); return; }
+    if (file.size > MAX_MB * 1024 * 1024) { showNotice('error', `Max ${MAX_MB} MB`); return; }
     setDescription('');
     setDocYear(CURRENT_YEAR);
-    setDescModal({ file });
+    setModal({ file });
   }
 
   async function doUpload(file: File, desc: string, year: number) {
-    setDescModal(null);
+    setModal(null);
     setUploading(true);
-    setProgress(`Caricamento ${file.name}…`);
+    setProgress(file.name);
     try {
       const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const path = `${apartment.id}/${year}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}_${safeName}`;
-
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type,
-      });
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
       if (upErr) throw upErr;
-
       const { error: dbErr } = await supabase.from('apartment_documents').insert({
-        apartment_id: apartment.id,
-        name: file.name,
-        description: desc.trim() || null,
-        storage_path: path,
-        file_size: file.size,
-        mime_type: file.type,
-        doc_year: year,
+        apartment_id: apartment.id, name: file.name, description: desc.trim() || null,
+        storage_path: path, file_size: file.size, mime_type: file.type, doc_year: year,
       });
-      if (dbErr) {
-        await supabase.storage.from(BUCKET).remove([path]);
-        throw dbErr;
-      }
-
-      showNotice('success', `"${file.name}" caricato in ${year}.`);
+      if (dbErr) { await supabase.storage.from(BUCKET).remove([path]); throw dbErr; }
+      showNotice('success', `"${file.name}" caricato (${year}).`);
       onUploaded();
     } catch (err: any) {
-      showNotice('error', err.message ?? 'Errore durante il caricamento.');
+      showNotice('error', err.message ?? 'Errore upload.');
     } finally {
       setUploading(false);
       setProgress('');
@@ -195,7 +171,7 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
   }
 
   async function handleDelete(doc: ApartmentDocument) {
-    if (!window.confirm(`Eliminare "${doc.name}"? L'operazione non e' reversibile.`)) return;
+    if (!window.confirm(`Eliminare "${doc.name}"?`)) return;
     setDeleting(doc.id);
     try {
       await supabase.storage.from(BUCKET).remove([doc.storage_path]);
@@ -203,7 +179,7 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
       if (error) throw error;
       onDeleted(doc);
     } catch (err: any) {
-      showNotice('error', err.message ?? "Errore durante l'eliminazione.");
+      showNotice('error', err.message ?? 'Errore eliminazione.');
     } finally {
       setDeleting(null);
     }
@@ -211,166 +187,127 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
 
   async function handleDownload(doc: ApartmentDocument) {
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(doc.storage_path, 3600);
-    if (error || !data?.signedUrl) {
-      showNotice('error', 'Impossibile generare il link di download.');
-      return;
-    }
+    if (error || !data?.signedUrl) { showNotice('error', 'Link non disponibile.'); return; }
     window.open(data.signedUrl, '_blank', 'noopener');
   }
 
   const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) pickFile(file);
+    e.preventDefault(); setDragging(false);
+    const f = e.dataTransfer.files[0]; if (f) pickFile(f);
   }, []);
 
-  // Group docs by year descending
   const byYear = docs.reduce<Record<number, ApartmentDocument[]>>((acc, d) => {
-    (acc[d.doc_year] ??= []).push(d);
-    return acc;
+    (acc[d.doc_year] ??= []).push(d); return acc;
   }, {});
   const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className={`flex items-center gap-3 p-4 ${accent.light} ${accent.border} border rounded-2xl`}>
-        <div className={`p-2.5 ${accent.bg} rounded-xl text-white shadow-sm`}>
-          <FolderOpen size={20} />
-        </div>
-        <div>
-          <h2 className="font-bold text-slate-800">{apartment.name}</h2>
-          <p className="text-xs text-slate-500">
-            {apartment.address ?? apartment.location} · {docs.length} document{docs.length === 1 ? 'o' : 'i'} · {years.length} ann{years.length === 1 ? 'o' : 'i'}
-          </p>
+    <div className="flex flex-col h-full">
+      {/* Colored header bar */}
+      <div className={`${accent.bar} rounded-t-2xl px-4 py-3 flex items-center gap-2`}>
+        <FolderOpen size={17} className="text-white opacity-90" />
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-white leading-none">{apartment.name}</h2>
+          <p className="text-xs text-white/70 mt-0.5">{docs.length} doc · {years.length} ann{years.length === 1 ? 'o' : 'i'}</p>
         </div>
       </div>
 
-      {/* Notice */}
-      {notice && (
-        <div className={`flex items-start gap-2 p-3 rounded-xl text-sm border animate-fade-in ${
-          notice.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
-        }`}>
-          {notice.type === 'success' ? <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" /> : <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />}
-          {notice.msg}
-        </div>
-      )}
+      {/* Body */}
+      <div className="flex-1 flex flex-col gap-3 border border-t-0 border-slate-200 rounded-b-2xl p-4 bg-white">
 
-      {/* Drop zone */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        onClick={() => !uploading && inputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
-          dragging ? `${accent.border} ${accent.light} ring-2 ${accent.ring}` : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white'
-        } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ALLOWED_TYPES.join(',')}
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickFile(f); }}
-        />
-        {uploading ? (
-          <>
-            <Loader2 size={28} className={`animate-spin ${accent.text}`} />
-            <p className="text-sm text-slate-500">{progress}</p>
-          </>
+        {/* Notice */}
+        {notice && (
+          <div className={`flex items-center gap-2 p-2.5 rounded-lg text-xs border animate-fade-in ${
+            notice.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            {notice.type === 'success' ? <CheckCircle2 size={13} className="flex-shrink-0" /> : <AlertCircle size={13} className="flex-shrink-0" />}
+            <span className="truncate">{notice.msg}</span>
+          </div>
+        )}
+
+        {/* Drop zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          onClick={() => !uploading && inputRef.current?.click()}
+          className={`flex items-center justify-center gap-2 py-4 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
+            dragging ? `${accent.border} ${accent.light} ring-2 ${accent.ring}` : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white'
+          } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
+        >
+          <input ref={inputRef} type="file" accept={ALLOWED_TYPES.join(',')} className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) pickFile(f); }} />
+          {uploading ? (
+            <>
+              <Loader2 size={16} className={`animate-spin ${accent.text}`} />
+              <p className="text-xs text-slate-500 truncate max-w-[160px]">{progress}</p>
+            </>
+          ) : (
+            <>
+              <Upload size={16} className={dragging ? accent.text : 'text-slate-400'} />
+              <p className="text-xs text-slate-500">
+                Trascina o <span className={`${accent.text} font-semibold`}>scegli file</span>
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Documents */}
+        {docs.length === 0 ? (
+          <p className="text-center text-xs text-slate-400 py-6">Nessun documento</p>
         ) : (
-          <>
-            <Upload size={28} className={dragging ? accent.text : 'text-slate-400'} />
-            <p className="text-sm font-medium text-slate-600">Trascina qui o <span className={`${accent.text} font-semibold`}>clicca per selezionare</span></p>
-            <p className="text-xs text-slate-400">PDF, immagini, Word, Excel · max {MAX_MB} MB</p>
-          </>
+          <div className="space-y-2">
+            {years.map((y) => (
+              <YearSection
+                key={y}
+                year={y}
+                docs={byYear[y].sort((a, b) => b.uploaded_at.localeCompare(a.uploaded_at))}
+                isOrange={isOrange}
+                defaultOpen={y === CURRENT_YEAR}
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+                deleting={deleting}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Year sections */}
-      {docs.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-sm">
-          Nessun documento caricato
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {years.map((y) => (
-            <YearSection
-              key={y}
-              year={y}
-              docs={byYear[y].sort((a, b) => b.uploaded_at.localeCompare(a.uploaded_at))}
-              accent={accent}
-              defaultOpen={y === CURRENT_YEAR}
-              onDownload={handleDownload}
-              onDelete={handleDelete}
-              deleting={deleting}
-            />
-          ))}
-        </div>
-      )}
-
       {/* Upload modal */}
-      {descModal && (
+      {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800">Dettagli documento</h3>
-              <button onClick={() => setDescModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
-                <X size={18} />
-              </button>
+              <h3 className="font-bold text-slate-800">Carica documento</h3>
+              <button onClick={() => setModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
             </div>
-
-            {/* File preview */}
             <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl mb-4">
-              <div className="flex-shrink-0">{fileIcon(descModal.file.type)}</div>
+              {fileIcon(modal.file.type)}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-700 truncate">{descModal.file.name}</p>
-                <p className="text-xs text-slate-400">{formatSize(descModal.file.size)}</p>
+                <p className="text-sm font-medium text-slate-700 truncate">{modal.file.name}</p>
+                <p className="text-xs text-slate-400">{formatSize(modal.file.size)}</p>
               </div>
             </div>
-
-            {/* Year picker */}
             <div className="mb-3">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                Anno di riferimento
-              </label>
-              <select
-                value={docYear}
-                onChange={(e) => setDocYear(Number(e.target.value))}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white"
-              >
-                {YEAR_OPTIONS.map((y) => (
-                  <option key={y} value={y}>{y}{y === CURRENT_YEAR ? ' (anno corrente)' : ''}</option>
-                ))}
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Anno</label>
+              <select value={docYear} onChange={(e) => setDocYear(Number(e.target.value))}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white">
+                {YEAR_OPTIONS.map((y) => <option key={y} value={y}>{y}{y === CURRENT_YEAR ? ' (corrente)' : ''}</option>)}
               </select>
             </div>
-
-            {/* Description */}
             <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                Nota (opzionale)
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Es: Bolletta gas Gen 2026, Contratto affitto…"
-                rows={3}
-                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none"
-              />
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Nota (opzionale)</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                placeholder="Es: Bolletta gas Gen 2026…" rows={2}
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none" />
             </div>
-
             <div className="flex gap-2">
-              <button
-                onClick={() => setDescModal(null)}
-                className="flex-1 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors"
-              >
+              <button onClick={() => setModal(null)}
+                className="flex-1 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
                 Annulla
               </button>
-              <button
-                onClick={() => doUpload(descModal.file, description, docYear)}
-                className={`flex-1 py-2 ${accent.bg} text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity`}
-              >
+              <button onClick={() => doUpload(modal.file, description, docYear)}
+                className={`flex-1 py-2 ${accent.btn} text-white text-sm font-semibold rounded-xl transition-colors`}>
                 Carica
               </button>
             </div>
@@ -388,6 +325,7 @@ export default function DocumentsPage() {
   const [docs, setDocs] = useState<ApartmentDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
 
   async function load() {
     try {
@@ -410,7 +348,7 @@ export default function DocumentsPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin w-10 h-10 border-4 border-slate-200 border-t-slate-600 rounded-full" />
+      <div className="animate-spin w-8 h-8 border-4 border-slate-200 border-t-slate-600 rounded-full" />
     </div>
   );
 
@@ -420,23 +358,25 @@ export default function DocumentsPage() {
     </div>
   );
 
+  const totalDocs = docs.length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2.5 bg-slate-800 rounded-xl text-white">
-            <FolderOpen size={20} />
-          </div>
-          <h1 className="text-2xl font-black text-slate-800">Documenti</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 bg-slate-800 rounded-xl text-white">
+          <FolderOpen size={18} />
         </div>
-        <p className="text-sm text-slate-500 ml-14">
-          Archivia contratti, bollette, planimetrie e qualsiasi documento per appartamento e anno.
-        </p>
+        <div>
+          <h1 className="text-xl font-black text-slate-800 leading-none">Documenti</h1>
+          <p className="text-xs text-slate-500 mt-0.5">{totalDocs} document{totalDocs === 1 ? 'o' : 'i'} archiviati</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Desktop: side-by-side columns */}
+      <div className="hidden md:grid md:grid-cols-2 gap-5">
         {apartments.map((apt) => (
-          <ApartmentColumn
+          <ApartmentPanel
             key={apt.id}
             apartment={apt}
             docs={docs.filter((d) => d.apartment_id === apt.id)}
@@ -444,6 +384,37 @@ export default function DocumentsPage() {
             onDeleted={(doc) => setDocs((prev) => prev.filter((d) => d.id !== doc.id))}
           />
         ))}
+      </div>
+
+      {/* Mobile: tabs */}
+      <div className="md:hidden">
+        <div className="flex rounded-xl border border-slate-200 overflow-hidden mb-4">
+          {apartments.map((apt, i) => {
+            const isOrange = apt.color_theme === 'orange';
+            const active = activeTab === i;
+            return (
+              <button
+                key={apt.id}
+                onClick={() => setActiveTab(i)}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                  active
+                    ? isOrange ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white'
+                    : 'bg-white text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                {apt.location}
+              </button>
+            );
+          })}
+        </div>
+        {apartments[activeTab] && (
+          <ApartmentPanel
+            apartment={apartments[activeTab]}
+            docs={docs.filter((d) => d.apartment_id === apartments[activeTab].id)}
+            onUploaded={load}
+            onDeleted={(doc) => setDocs((prev) => prev.filter((d) => d.id !== doc.id))}
+          />
+        )}
       </div>
     </div>
   );
