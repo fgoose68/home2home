@@ -1,4 +1,4 @@
-import { Building2, Home, LayoutDashboard, BarChart3, Menu, X, Archive } from 'lucide-react';
+import { Building2, Home, LayoutDashboard, BarChart3, Menu, X, Archive, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import Logo from './Logo';
 import { ActivePage } from '../lib/types';
@@ -6,6 +6,7 @@ import { ActivePage } from '../lib/types';
 interface NavigationProps {
   activePage: ActivePage;
   onNavigate: (page: ActivePage) => void;
+  onLogout: () => void;
 }
 
 const navItems = [
@@ -16,12 +17,17 @@ const navItems = [
   { id: 'backup' as ActivePage, label: 'Backup', icon: Archive },
 ];
 
-export default function Navigation({ activePage, onNavigate }: NavigationProps) {
+export default function Navigation({ activePage, onNavigate, onLogout }: NavigationProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function handleNav(page: ActivePage) {
     onNavigate(page);
     setMobileOpen(false);
+  }
+
+  function handleLogout() {
+    setMobileOpen(false);
+    onLogout();
   }
 
   return (
@@ -46,6 +52,17 @@ export default function Navigation({ activePage, onNavigate }: NavigationProps) 
                 {label}
               </button>
             ))}
+
+            {/* Separator + logout */}
+            <div className="w-px h-5 bg-slate-200 mx-1" />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+              title="Esci"
+            >
+              <LogOut size={16} />
+              Esci
+            </button>
           </div>
 
           {/* Mobile hamburger */}
@@ -76,8 +93,18 @@ export default function Navigation({ activePage, onNavigate }: NavigationProps) 
               {label}
             </button>
           ))}
+          <div className="border-t border-slate-100 mt-1">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-6 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut size={18} />
+              Esci
+            </button>
+          </div>
         </div>
       )}
     </nav>
   );
 }
+

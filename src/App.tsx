@@ -15,6 +15,11 @@ export default function App() {
     return <LoginPage onLogin={() => setAuthed(true)} />;
   }
 
+  function handleLogout() {
+    sessionStorage.removeItem('h2h_auth');
+    setAuthed(false);
+  }
+
   function renderPage() {
     switch (activePage) {
       case 'dashboard': return <Dashboard onNavigate={setActivePage} />;
@@ -28,7 +33,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation activePage={activePage} onNavigate={setActivePage} />
+      <Navigation activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       <main className="animate-fade-in">
         {renderPage()}
       </main>
