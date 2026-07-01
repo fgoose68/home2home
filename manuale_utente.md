@@ -315,4 +315,45 @@ L'applicazione è ottimizzata per:
 
 ---
 
+## Deploy con Docker
+
+### Build e avvio
+
+```bash
+# 1. Build dell'immagine Docker
+docker compose build
+
+# 2. Avvio del container
+docker compose up -d
+
+# 3. Per fermare il container
+docker compose down
+```
+
+### Accesso nel browser
+
+Una volta avviato il container, l'applicazione è raggiungibile su:
+
+```
+http://IP_SERVER:3070
+```
+
+> La porta **3070** è mappata verso Nginx (porta 80 interna al container). Se si utilizza un dominio al posto dell'IP: `http://nome-dominio.it:3070`
+
+### Struttura del deploy
+
+| Componente | Dettaglio |
+|---|---|
+| **Web server** | Nginx (Alpine) |
+| **Porta esterna** | 3070 |
+| **Porta interna container** | 80 |
+| **File di configurazione** | `docker-compose.yml`, `nginx.conf`, `Dockerfile` |
+
+### Note
+
+- Il file `.env` deve essere presente nella root del progetto prima di eseguire il build; contiene le variabili di connessione a Supabase.
+- L'immagine Docker include solo i file statici compilati (`dist/`); nessun dato viene salvato localmente nel container.
+
+---
+
 *Manuale generato il 01/07/2026 — H2H Home2Home*
