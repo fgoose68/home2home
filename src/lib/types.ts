@@ -57,6 +57,7 @@ export interface ApartmentDocument {
   storage_path: string;
   file_size: number;
   mime_type: string;
+  doc_year: number;
   uploaded_at: string;
 }
 

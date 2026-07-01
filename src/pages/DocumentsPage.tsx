@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FileText, FileImage, FileSpreadsheet, File, Download, Trash2,
-  Upload, FolderOpen, AlertCircle, CheckCircle2, Loader2, X
+  Upload, FolderOpen, AlertCircle, CheckCircle2, Loader2, X, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Apartment, ApartmentDocument } from '../lib/types';
 
 const BUCKET = 'apartment-docs';
 const MAX_MB = 50;
+const CURRENT_YEAR = new Date().getFullYear();
 const ALLOWED_TYPES = [
   'application/pdf',
   'image/jpeg', 'image/png', 'image/webp', 'image/gif',
@@ -17,6 +18,9 @@ const ALLOWED_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'text/plain',
 ];
+
+// Year range: 5 years back + current + 1 ahead
+const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => CURRENT_YEAR - 5 + i);
 
 function fileIcon(mime: string) {
   if (mime === 'application/pdf') return <FileText size={18} className="text-red-500" />;
@@ -36,6 +40,77 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+// ─── Year section (collapsible) ───────────────────────────────────────────────
+
+interface YearSectionProps {
+  year: number;
+  docs: ApartmentDocument[];
+  accent: Record<string, string>;
+  defaultOpen: boolean;
+  onDownload: (doc: ApartmentDocument) => void;
+  onDelete: (doc: ApartmentDocument) => Promise<void>;
+  deleting: string | null;
+}
+
+function YearSection({ year, docs, accent, defaultOpen, onDownload, onDelete, deleting }: YearSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
+      {/* Year header */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {open ? <ChevronDown size={15} className="text-slate-400" /> : <ChevronRight size={15} className="text-slate-400" />}
+          <span className="text-sm font-bold text-slate-700">{year}</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${accent.light} ${accent.text} border ${accent.border}`}>
+            {docs.length} doc{docs.length !== 1 ? 'umenti' : 'umento'}
+          </span>
+        </div>
+      </button>
+
+      {/* Doc list */}
+      {open && (
+        <div className="divide-y divide-slate-100">
+          {docs.map((doc) => (
+            <div key={doc.id} className="flex items-start gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+              <div className="mt-0.5 flex-shrink-0">{fileIcon(doc.mime_type)}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-800 truncate">{doc.name}</p>
+                {doc.description && (
+                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{doc.description}</p>
+                )}
+                <p className="text-xs text-slate-400 mt-0.5">{formatSize(doc.file_size)} · {formatDate(doc.uploaded_at)}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => onDownload(doc)}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Scarica / Visualizza"
+                >
+                  <Download size={15} />
+                </button>
+                <button
+                  onClick={() => onDelete(doc)}
+                  disabled={deleting === doc.id}
+                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
+                  title="Elimina"
+                >
+                  {deleting === doc.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Apartment column ─────────────────────────────────────────────────────────
+
 interface ApartmentColumnProps {
   apartment: Apartment;
   docs: ApartmentDocument[];
@@ -47,11 +122,12 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState<string>('');
+  const [progress, setProgress] = useState('');
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [descModal, setDescModal] = useState<{ file: File } | null>(null);
   const [description, setDescription] = useState('');
+  const [docYear, setDocYear] = useState(CURRENT_YEAR);
 
   const isOrange = apartment.color_theme === 'orange';
   const accent = isOrange
@@ -73,17 +149,18 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
     const err = validateFile(file);
     if (err) { showNotice('error', err); return; }
     setDescription('');
+    setDocYear(CURRENT_YEAR);
     setDescModal({ file });
   }
 
-  async function doUpload(file: File, desc: string) {
+  async function doUpload(file: File, desc: string, year: number) {
     setDescModal(null);
     setUploading(true);
     setProgress(`Caricamento ${file.name}…`);
     try {
       const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `${apartment.id}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}_${safeName}`;
+      const path = `${apartment.id}/${year}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}_${safeName}`;
 
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
         cacheControl: '3600',
@@ -99,13 +176,14 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
         storage_path: path,
         file_size: file.size,
         mime_type: file.type,
+        doc_year: year,
       });
       if (dbErr) {
         await supabase.storage.from(BUCKET).remove([path]);
         throw dbErr;
       }
 
-      showNotice('success', `"${file.name}" caricato con successo.`);
+      showNotice('success', `"${file.name}" caricato in ${year}.`);
       onUploaded();
     } catch (err: any) {
       showNotice('error', err.message ?? 'Errore durante il caricamento.');
@@ -125,7 +203,7 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
       if (error) throw error;
       onDeleted(doc);
     } catch (err: any) {
-      showNotice('error', err.message ?? 'Errore durante l\'eliminazione.');
+      showNotice('error', err.message ?? "Errore durante l'eliminazione.");
     } finally {
       setDeleting(null);
     }
@@ -147,6 +225,13 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
     if (file) pickFile(file);
   }, []);
 
+  // Group docs by year descending
+  const byYear = docs.reduce<Record<number, ApartmentDocument[]>>((acc, d) => {
+    (acc[d.doc_year] ??= []).push(d);
+    return acc;
+  }, {});
+  const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -156,15 +241,17 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
         </div>
         <div>
           <h2 className="font-bold text-slate-800">{apartment.name}</h2>
-          <p className="text-xs text-slate-500">{apartment.address ?? apartment.location} · {docs.length} document{docs.length === 1 ? 'o' : 'i'}</p>
+          <p className="text-xs text-slate-500">
+            {apartment.address ?? apartment.location} · {docs.length} document{docs.length === 1 ? 'o' : 'i'} · {years.length} ann{years.length === 1 ? 'o' : 'i'}
+          </p>
         </div>
       </div>
 
       {/* Notice */}
       {notice && (
-        <div className={`flex items-start gap-2 p-3 rounded-xl text-sm border ${
+        <div className={`flex items-start gap-2 p-3 rounded-xl text-sm border animate-fade-in ${
           notice.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
-        } animate-fade-in`}>
+        }`}>
           {notice.type === 'success' ? <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" /> : <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />}
           {notice.msg}
         </div>
@@ -201,55 +288,40 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
         )}
       </div>
 
-      {/* Document list */}
+      {/* Year sections */}
       {docs.length === 0 ? (
         <div className="text-center py-8 text-slate-400 text-sm">
           Nessun documento caricato
         </div>
       ) : (
         <div className="space-y-2">
-          {docs.map((doc) => (
-            <div key={doc.id} className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all">
-              <div className="mt-0.5 flex-shrink-0">{fileIcon(doc.mime_type)}</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">{doc.name}</p>
-                {doc.description && (
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{doc.description}</p>
-                )}
-                <p className="text-xs text-slate-400 mt-0.5">{formatSize(doc.file_size)} · {formatDate(doc.uploaded_at)}</p>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() => handleDownload(doc)}
-                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Scarica / Visualizza"
-                >
-                  <Download size={15} />
-                </button>
-                <button
-                  onClick={() => handleDelete(doc)}
-                  disabled={deleting === doc.id}
-                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
-                  title="Elimina"
-                >
-                  {deleting === doc.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                </button>
-              </div>
-            </div>
+          {years.map((y) => (
+            <YearSection
+              key={y}
+              year={y}
+              docs={byYear[y].sort((a, b) => b.uploaded_at.localeCompare(a.uploaded_at))}
+              accent={accent}
+              defaultOpen={y === CURRENT_YEAR}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+              deleting={deleting}
+            />
           ))}
         </div>
       )}
 
-      {/* Description modal */}
+      {/* Upload modal */}
       {descModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800">Aggiungi nota (opzionale)</h3>
+              <h3 className="font-bold text-slate-800">Dettagli documento</h3>
               <button onClick={() => setDescModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
                 <X size={18} />
               </button>
             </div>
+
+            {/* File preview */}
             <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl mb-4">
               <div className="flex-shrink-0">{fileIcon(descModal.file.type)}</div>
               <div className="flex-1 min-w-0">
@@ -257,13 +329,37 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
                 <p className="text-xs text-slate-400">{formatSize(descModal.file.size)}</p>
               </div>
             </div>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Es: Bolletta gas Gennaio 2026, Contratto affitto…"
-              rows={3}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none mb-4"
-            />
+
+            {/* Year picker */}
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                Anno di riferimento
+              </label>
+              <select
+                value={docYear}
+                onChange={(e) => setDocYear(Number(e.target.value))}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white"
+              >
+                {YEAR_OPTIONS.map((y) => (
+                  <option key={y} value={y}>{y}{y === CURRENT_YEAR ? ' (anno corrente)' : ''}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                Nota (opzionale)
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Es: Bolletta gas Gen 2026, Contratto affitto…"
+                rows={3}
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none"
+              />
+            </div>
+
             <div className="flex gap-2">
               <button
                 onClick={() => setDescModal(null)}
@@ -272,7 +368,7 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
                 Annulla
               </button>
               <button
-                onClick={() => doUpload(descModal.file, description)}
+                onClick={() => doUpload(descModal.file, description, docYear)}
                 className={`flex-1 py-2 ${accent.bg} text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity`}
               >
                 Carica
@@ -284,6 +380,8 @@ function ApartmentColumn({ apartment, docs, onUploaded, onDeleted }: ApartmentCo
     </div>
   );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DocumentsPage() {
   const [apartments, setApartments] = useState<Apartment[]>([]);
@@ -324,7 +422,6 @@ export default function DocumentsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2.5 bg-slate-800 rounded-xl text-white">
@@ -333,11 +430,10 @@ export default function DocumentsPage() {
           <h1 className="text-2xl font-black text-slate-800">Documenti</h1>
         </div>
         <p className="text-sm text-slate-500 ml-14">
-          Archivia contratti, bollette, planimetrie e qualsiasi documento per ogni appartamento.
+          Archivia contratti, bollette, planimetrie e qualsiasi documento per appartamento e anno.
         </p>
       </div>
 
-      {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {apartments.map((apt) => (
           <ApartmentColumn
