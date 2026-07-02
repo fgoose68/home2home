@@ -16,7 +16,7 @@ export default function BarChart({ data, title, height = 160 }: BarChartProps) {
         {data.map((item) => {
           const pct = (item.value / max) * 100;
           return (
-            <div key={item.label} className="flex flex-col items-center gap-1 flex-1 min-w-0 group">
+            <div key={item.color + item.label} className="flex flex-col items-center gap-1 flex-1 min-w-0 group">
               <div className="relative w-full flex flex-col items-center justify-end" style={{ height: height - 32 }}>
                 <div
                   className="w-full rounded-t-lg transition-all duration-500 ease-out cursor-default"
@@ -28,7 +28,7 @@ export default function BarChart({ data, title, height = 160 }: BarChartProps) {
                   {formatCurrency(item.value)}
                 </div>
               </div>
-              <span className="text-xs text-slate-500 text-center truncate w-full text-center leading-tight">
+              <span className="text-xs text-slate-500 text-center whitespace-pre-wrap w-full leading-tight">
                 {item.label}
               </span>
             </div>

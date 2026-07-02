@@ -52,11 +52,22 @@ export default function Statistics() {
   }, [categories, selectedApartmentId]);
 
   // Totals by category for selected year/apt
-  const catData = useMemo(() => filteredCats.map((cat) => ({
-    label: cat.name,
-    value: filtered.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
-    color: cat.color,
-  })).filter((d) => d.value > 0), [filtered, filteredCats]);
+  const catData = useMemo(() => {
+    const nameCount = filteredCats.reduce<Record<string, number>>((acc, c) => {
+      acc[c.name] = (acc[c.name] ?? 0) + 1;
+      return acc;
+    }, {});
+    return filteredCats.map((cat) => {
+      const apt = apartments.find((a) => a.id === cat.apartment_id);
+      const isDuplicate = (nameCount[cat.name] ?? 0) > 1;
+      return {
+        catId: cat.id,
+        label: isDuplicate && apt ? `${cat.name}\n${apt.location}` : cat.name,
+        value: filtered.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
+        color: cat.color,
+      };
+    }).filter((d) => d.value > 0);
+  }, [filtered, filteredCats, apartments]);
 
   // Year-over-year totals per apartment
   const yearlyData = useMemo(() => AVAILABLE_YEARS.map((y) => ({
@@ -215,7 +226,12 @@ export default function Statistics() {
         {catData.length > 0 ? (
           <BarChart
             title={`Spese per categoria — ${selectedYear}`}
-            data={catData.map((d) => ({ ...d, label: d.label.length > 12 ? d.label.split(' ')[0] : d.label }))}
+            data={catData.map((d) => ({
+              ...d,
+              label: d.label.includes('\n')
+                ? d.label
+                : d.label.length > 12 ? d.label.split(' ')[0] : d.label,
+            }))}
             height={200}
           />
         ) : (
@@ -285,17 +301,17 @@ export default function Statistics() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {catData.sort((a, b) => b.value - a.value).map((item) => {
-                  const cat = filteredCats.find((c) => c.name === item.label || c.color === item.color);
+                  const cat = filteredCats.find((c) => c.id === item.catId);
                   const apt = apartments.find((a) => a.id === cat?.apartment_id);
                   const catExpenses = filtered.filter((e) => e.category_id === cat?.id);
                   const paid = catExpenses.filter((e) => e.status === 'paid').reduce((s, e) => s + Number(e.amount), 0);
                   const pct = totalFiltered > 0 ? (item.value / totalFiltered) * 100 : 0;
                   return (
-                    <tr key={item.label} className="hover:bg-slate-50 transition-colors">
+                    <tr key={item.catId} className="hover:bg-slate-50 transition-colors">
                       <td className="px-5 py-3">
                         <span className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="font-medium text-slate-700">{cat?.name ?? item.label}</span>
+                          <span className="font-medium text-slate-700">{cat?.name ?? item.label.split('\n')[0]}</span>
                         </span>
                       </td>
                       <td className="px-5 py-3">
