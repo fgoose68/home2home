@@ -1,5 +1,5 @@
 # H2H — Home2Home
-## Manuale Utente · Ver. 1.1 · Luglio 2026
+## Manuale Utente · Ver. 1.2 · Luglio 2026
 
 ---
 
@@ -14,7 +14,8 @@
 7. [Statistiche](#7-statistiche)
 8. [Documenti](#8-documenti)
 9. [Backup & Ripristino](#9-backup--ripristino)
-10. [Navigazione e layout](#10-navigazione-e-layout)
+10. [Impostazioni & Notifiche](#10-impostazioni--notifiche)
+11. [Navigazione e layout](#11-navigazione-e-layout)
 
 ---
 
@@ -273,7 +274,39 @@ Elimina tutte le spese dal database. Appartamenti, categorie e documenti rimango
 
 ---
 
-## 10. Navigazione e layout
+## 10. Impostazioni & Notifiche
+
+Accessibile dalla navigazione → **Impostazioni**.
+
+### Notifiche Pushover
+
+L'applicazione supporta le notifiche push tramite **Pushover**: il giorno in cui una spesa scade (campo "Scadenza") e il suo stato è "Da pagare", viene inviata automaticamente una notifica al tuo dispositivo alle **11:15** (ora italiana estiva, CEST).
+
+### Configurazione
+
+| Campo | Descrizione |
+|---|---|
+| **User Key** | La chiave personale del tuo account Pushover (visibile su pushover.net dopo il login) |
+| **API Token** | Il token dell'applicazione creata su pushover.net → *Your Applications* → *Create an Application* |
+| **Toggle on/off** | Abilita o disabilita le notifiche senza cancellare le credenziali |
+
+1. Inserire **User Key** e **API Token**
+2. Attivare il toggle
+3. Premere **Salva**
+4. Premere **Invia notifica di test** per verificare che tutto funzioni
+
+### Come funzionano le notifiche
+
+- Ogni giorno alle **11:15** (ora italiana estiva) il sistema controlla se esistono spese con data di scadenza uguale alla data odierna e stato "Da pagare"
+- Per ciascuna spesa trovata viene inviata una notifica con: nome appartamento, categoria, importo e periodo
+- Se più spese scadono nello stesso giorno si riceve una notifica per ciascuna
+- In inverno (CET, UTC+1) le notifiche arrivano alle **10:15**
+
+> Le notifiche vengono inviate solo se il toggle è attivo e le credenziali sono configurate e valide.
+
+---
+
+## 11. Navigazione e layout
 
 ### Barra di navigazione
 
@@ -287,6 +320,7 @@ La barra in alto è sempre visibile e contiene:
 | Statistiche | Apre la pagina Statistiche |
 | Documenti | Apre l'archivio documenti |
 | Backup | Apre Backup & Ripristino |
+| Impostazioni | Apre la configurazione notifiche Pushover |
 | Logout | Esce dall'applicazione |
 
 ### Design responsive
@@ -311,7 +345,7 @@ L'applicazione è ottimizzata per:
 | **Frontend** | React + Vite + Tailwind CSS |
 | **Storage documenti** | Supabase Storage (bucket privato, URL firmati) |
 | **Autenticazione** | Session storage locale (credenziali fisse) |
-| **Versione** | 1.1 — Luglio 2026 |
+| **Versione** | 1.2 — Luglio 2026 |
 
 ---
 
@@ -356,4 +390,4 @@ http://IP_SERVER:3070
 
 ---
 
-*Manuale generato il 01/07/2026 — H2H Home2Home*
+*Manuale generato il 02/07/2026 — H2H Home2Home*
