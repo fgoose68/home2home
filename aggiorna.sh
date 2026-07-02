@@ -15,11 +15,12 @@ git pull
 
 # 2. Ricostruisce immagine e riavvia il container
 echo "  [2/3] Build e riavvio container..."
-docker compose up -d --build
+sudo docker compose down --remove-orphans
+sudo docker compose up -d --build
 
 # 3. Mostra stato finale
 echo "  [3/3] Stato container:"
-docker compose ps
+sudo docker compose ps
 
 echo ""
 echo "  Aggiornamento completato."
