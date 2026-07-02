@@ -133,7 +133,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-semibold text-slate-800">Notifiche Pushover</h2>
-              <p className="text-xs text-slate-500">Avvisi push il giorno della scadenza alle 11:15</p>
+              <p className="text-xs text-slate-500">Avvisi push il giorno della scadenza alle 12:10</p>
             </div>
           </div>
           {/* Enable toggle */}
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                   : 'bg-slate-100 text-slate-500 border border-slate-200'
               }`}>
                 {enabled && userKey && apiToken
-                  ? <><Bell size={13} /> Notifiche attive — ogni giorno alle 11:15 (ora italiana estiva)</>
+                  ? <><Bell size={13} /> Notifiche attive — ogni giorno alle 12:10 (ora italiana estiva)</>
                   : <><BellOff size={13} /> Notifiche disabilitate</>
                 }
               </div>
@@ -251,7 +251,7 @@ export default function SettingsPage() {
         <h3 className="font-semibold text-slate-700">Come funziona</h3>
         <ol className="text-sm text-slate-600 space-y-2 list-none">
           {[
-            'Ogni mattina alle 11:15 il sistema verifica se ci sono spese con data di scadenza uguale ad oggi e stato "Da pagare".',
+            'Ogni mattina alle 12:10 il sistema verifica se ci sono spese con data di scadenza uguale ad oggi e stato "Da pagare".',
             'Per ciascuna spesa in scadenza viene inviata una notifica push al tuo dispositivo tramite Pushover.',
             'La notifica indica l\'appartamento, la categoria, l\'importo e il periodo della spesa.',
             'Se più spese scadono nello stesso giorno riceverai una notifica per ognuna.',
@@ -290,8 +290,8 @@ export default function SettingsPage() {
 
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
           <p className="text-xs text-amber-800">
-            <strong>Nota sull'orario:</strong> Le notifiche automatiche sono programmate alle 9:15 UTC, che corrisponde alle <strong>11:15 ora italiana estiva</strong> (CEST, UTC+2).
-            In inverno (CET, UTC+1) l'arrivo si sposta alle 10:15.
+            <strong>Nota sull'orario:</strong> Le notifiche automatiche sono programmate alle 10:10 UTC, che corrisponde alle <strong>12:10 ora italiana estiva</strong> (CEST, UTC+2).
+            In inverno (CET, UTC+1) l'arrivo si sposta alle 11:10.
           </p>
         </div>
       </div>

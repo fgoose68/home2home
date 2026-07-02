@@ -1,5 +1,5 @@
 # H2H — Home2Home
-## Manuale Utente · Ver. 1.2 · Luglio 2026
+## Manuale Utente · Ver. 2.1 · Luglio 2026
 
 ---
 
@@ -280,7 +280,7 @@ Accessibile dalla navigazione → **Impostazioni**.
 
 ### Notifiche Pushover
 
-L'applicazione supporta le notifiche push tramite **Pushover**: il giorno in cui una spesa scade (campo "Scadenza") e il suo stato è "Da pagare", viene inviata automaticamente una notifica al tuo dispositivo alle **11:15** (ora italiana estiva, CEST).
+L'applicazione supporta le notifiche push tramite **Pushover**: il giorno in cui una spesa scade (campo "Scadenza") e il suo stato è "Da pagare", viene inviata automaticamente una notifica al tuo dispositivo alle **12:10** (ora italiana estiva, CEST).
 
 ### Configurazione
 
@@ -297,10 +297,10 @@ L'applicazione supporta le notifiche push tramite **Pushover**: il giorno in cui
 
 ### Come funzionano le notifiche
 
-- Ogni giorno alle **11:15** (ora italiana estiva) il sistema controlla se esistono spese con data di scadenza uguale alla data odierna e stato "Da pagare"
+- Ogni giorno alle **12:10** (ora italiana estiva) il sistema controlla se esistono spese con data di scadenza uguale alla data odierna e stato "Da pagare"
 - Per ciascuna spesa trovata viene inviata una notifica con: nome appartamento, categoria, importo e periodo
 - Se più spese scadono nello stesso giorno si riceve una notifica per ciascuna
-- In inverno (CET, UTC+1) le notifiche arrivano alle **10:15**
+- In inverno (CET, UTC+1) le notifiche arrivano alle **11:10**
 
 > Le notifiche vengono inviate solo se il toggle è attivo e le credenziali sono configurate e valide.
 
@@ -345,7 +345,7 @@ L'applicazione è ottimizzata per:
 | **Frontend** | React + Vite + Tailwind CSS |
 | **Storage documenti** | Supabase Storage (bucket privato, URL firmati) |
 | **Autenticazione** | Session storage locale (credenziali fisse) |
-| **Versione** | 1.2 — Luglio 2026 |
+| **Versione** | 2.1 — Luglio 2026 |
 
 ---
 
