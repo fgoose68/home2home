@@ -11,7 +11,9 @@ echo "  ────────────────────────
 
 # 1. Scarica ultime modifiche da GitHub
 echo "  [1/3] git pull..."
+git stash
 git pull
+git stash drop 2>/dev/null || true
 
 # 2. Ricostruisce immagine e riavvia il container
 echo "  [2/3] Build e riavvio container..."
