@@ -6,6 +6,7 @@ import Statistics from './pages/Statistics';
 import BackupPage from './pages/BackupPage';
 import DocumentsPage from './pages/DocumentsPage';
 import LoginPage from './pages/LoginPage';
+import SettingsPage from './pages/SettingsPage';
 import { ActivePage } from './lib/types';
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
       case 'statistics': return <Statistics />;
       case 'documenti': return <DocumentsPage />;
       case 'backup': return <BackupPage />;
+      case 'impostazioni': return <SettingsPage />;
       default: return <Dashboard onNavigate={setActivePage} />;
     }
   }

@@ -61,4 +61,12 @@ export interface ApartmentDocument {
   uploaded_at: string;
 }
 
-export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics' | 'backup' | 'documenti';
+export interface Settings {
+  id: number;
+  pushover_user_key: string | null;
+  pushover_api_token: string | null;
+  notifications_enabled: boolean;
+  updated_at: string;
+}
+
+export type ActivePage = 'dashboard' | 'roma' | 'nettuno' | 'statistics' | 'backup' | 'documenti' | 'impostazioni';
