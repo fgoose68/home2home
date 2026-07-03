@@ -34,12 +34,12 @@ chmod +x aggiorna.sh update.sh 2>/dev/null || true
 
 # 3. Ricostruisce immagine e riavvia il container
 echo "  [3/4] Build e riavvio container..."
-docker compose down --remove-orphans
-docker compose up -d --build
+sudo docker compose down --remove-orphans
+sudo docker compose up -d --build
 
 # 4. Mostra stato finale
 echo "  [4/4] Stato container:"
-docker compose ps
+sudo docker compose ps
 
 echo ""
 echo "  Aggiornamento completato."
