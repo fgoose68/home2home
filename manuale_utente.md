@@ -1,5 +1,5 @@
 # H2H — Home2Home
-## Manuale Utente · Ver. 2.1 · Luglio 2026
+## Manuale Utente · Ver. 3.1 · Luglio 2026
 
 ---
 
@@ -345,7 +345,7 @@ L'applicazione è ottimizzata per:
 | **Frontend** | React + Vite + Tailwind CSS |
 | **Storage documenti** | Supabase Storage (bucket privato, URL firmati) |
 | **Autenticazione** | Session storage locale (credenziali fisse) |
-| **Versione** | 2.1 — Luglio 2026 |
+| **Versione** | 3.1 — Luglio 2026 |
 
 ---
 
@@ -390,4 +390,4 @@ http://IP_SERVER:3070
 
 ---
 
-*Manuale generato il 02/07/2026 — H2H Home2Home*
+*Manuale generato il 03/07/2026 — H2H Home2Home · Ver. 3.1*

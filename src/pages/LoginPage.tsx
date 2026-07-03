@@ -176,7 +176,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Bottom label */}
         <p className="text-center text-slate-600 text-xs mt-4">
-          Roma &amp; Nettuno &nbsp;·&nbsp; <span className="text-slate-500 font-medium">Ver.2.1Lug2026</span>
+          Roma &amp; Nettuno &nbsp;·&nbsp; <span className="text-slate-500 font-medium">Ver.3.1Lug2026</span>
         </p>
       </div>
     </div>
