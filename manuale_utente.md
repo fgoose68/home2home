@@ -390,4 +390,55 @@ http://IP_SERVER:3070
 
 ---
 
+### Aggiornamento dell'applicazione su Ubuntu
+
+Per aggiornare l'applicazione con le ultime modifiche presenti su GitHub, eseguire i comandi seguenti in ordine:
+
+```bash
+# 1. Scarica l'ultima versione da GitHub (il .env locale viene preservato)
+cd ~/h2h && cp .env /tmp/.env.backup \
+  && git fetch origin && git reset --hard origin/main \
+  && cp /tmp/.env.backup .env
+
+# 2. Ricostruisce l'immagine e riavvia il container
+sudo docker compose up -d --build
+
+# 3. Verifica che il container sia in esecuzione
+sudo docker compose ps
+```
+
+> Il file `.env` è escluso dal repository (`.gitignore`), quindi il backup/ripristino manuale garantisce che le credenziali Supabase non vengano mai sovrascritte dall'aggiornamento.
+
+---
+
+### Risoluzione errore "permission denied" su docker stop
+
+Su alcuni sistemi Ubuntu il comando `docker compose down` (o `up --build`) può fallire con:
+
+```
+Error response from daemon: cannot stop container: ... permission denied
+```
+
+**Soluzione rapida** — fermare il container bloccato con kill diretto:
+
+```bash
+# Sostituire <container-id> con l'ID mostrato nell'errore (primi 12 caratteri)
+sudo kill -9 $(sudo docker inspect --format '{{.State.Pid}}' <container-id>)
+sudo docker rm -f <container-id>
+
+# Poi riavviare normalmente
+sudo docker compose up -d --build
+```
+
+**Soluzione permanente** — a partire dalla versione 3.1 il file `docker-compose.yml` include già:
+
+```yaml
+stop_signal: SIGKILL
+stop_grace_period: 5s
+```
+
+Questo fa sì che Docker utilizzi direttamente SIGKILL invece di SIGTERM, eliminando il problema alla radice. Dopo il primo aggiornamento riuscito l'errore non si ripresenterà.
+
+---
+
 *Manuale generato il 03/07/2026 — H2H Home2Home · Ver. 3.1*
