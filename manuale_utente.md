@@ -1,5 +1,5 @@
 # H2H — Home2Home
-## Manuale Utente · Ver. 3.1 · Luglio 2026
+## Manuale Utente · Ver. 8.1 · Luglio 2026
 
 ---
 
@@ -102,6 +102,8 @@ Accessibile dalla navigazione → **Roma** oppure dalla Dashboard.
 | Energia / Luce | Bimestrale | 6 bollette all'anno |
 | Gas | Ogni 4 mesi | 3 bollette all'anno |
 | Acqua Potabile | Bimestrale | 6 bollette all'anno |
+| Cedolare | Semestrale | 2 rate: acconto Giugno / saldo Dicembre |
+| Spese extra | Libero | Spese straordinarie non ricorrenti |
 | Altre spese | Libero | Spese non ricorrenti |
 
 ### Intestazione pagina
@@ -127,6 +129,7 @@ Stesso layout dell'Appartamento Roma, con le proprie categorie.
 | Energia | Bimestrale | 6 bollette all'anno |
 | TARI | Unica o trimestrale | |
 | Imposta Immobili (IMU) | Semestrale | 2 rate: acconto Giugno / saldo Dicembre |
+| Spese extra | Libero | Spese straordinarie non ricorrenti |
 | Altre spese | Libero | Spese non ricorrenti |
 
 ---
@@ -345,7 +348,7 @@ L'applicazione è ottimizzata per:
 | **Frontend** | React + Vite + Tailwind CSS |
 | **Storage documenti** | Supabase Storage (bucket privato, URL firmati) |
 | **Autenticazione** | Session storage locale (credenziali fisse) |
-| **Versione** | 3.1 — Luglio 2026 |
+| **Versione** | 8.1 — Luglio 2026 |
 
 ---
 
@@ -441,4 +444,4 @@ Questo fa sì che Docker utilizzi direttamente SIGKILL invece di SIGTERM, elimin
 
 ---
 
-*Manuale generato il 03/07/2026 — H2H Home2Home · Ver. 3.1*
+*Manuale generato il 08/07/2026 — H2H Home2Home · Ver. 8.1*

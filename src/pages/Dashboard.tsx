@@ -68,12 +68,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const totalPaid = expenses.filter((e) => e.status === 'paid').reduce((s, e) => s + Number(e.amount), 0);
   const totalPending = expenses.filter((e) => e.status === 'pending').reduce((s, e) => s + Number(e.amount), 0);
 
-  // Bar chart: totals by category
-  const catTotals = categories.map((cat) => ({
-    label: cat.name.length > 10 ? cat.name.split(' ')[0] : cat.name,
-    value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
-    color: cat.color,
-  })).filter((d) => d.value > 0);
+  // Bar chart: totals by category with apartment disambiguation
+  const nameCount = categories.reduce<Record<string, number>>((acc, c) => {
+    acc[c.name] = (acc[c.name] ?? 0) + 1;
+    return acc;
+  }, {});
+  const catTotals = categories.map((cat) => {
+    const apt = apartments.find((a) => a.id === cat.apartment_id);
+    const isDuplicate = (nameCount[cat.name] ?? 0) > 1;
+    const label = isDuplicate && apt ? `${cat.name}\n${apt.location}` : cat.name;
+    return {
+      label,
+      value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
+      color: cat.color,
+    };
+  }).filter((d) => d.value > 0);
 
   // Recent expenses
   const recent = [...expenses]
@@ -154,7 +163,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <TrendingUp size={16} className="text-orange-300 group-hover:text-orange-500 transition-colors" />
           </div>
           <h3 className="font-bold text-slate-800 text-lg mb-1">Appartamento Roma</h3>
-          <p className="text-sm text-slate-500 mb-4">Condominio, TARI, Gas, Luce, Acqua</p>
+          <p className="text-sm text-slate-500 mb-4">Condominio, TARI, Gas, Luce, Acqua, Cedolare</p>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-black text-orange-600 tabular-nums">{formatCurrency(totalRoma)}</span>
             <span className="text-xs text-slate-400 bg-white rounded-full px-3 py-1 border border-orange-100">
@@ -175,7 +184,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <TrendingUp size={16} className="text-blue-300 group-hover:text-blue-500 transition-colors" />
           </div>
           <h3 className="font-bold text-slate-800 text-lg mb-1">Appartamento Nettuno</h3>
-          <p className="text-sm text-slate-500 mb-4">Condominio, Energia, TARI, IMU</p>
+          <p className="text-sm text-slate-500 mb-4">Condominio, Energia, TARI, IMU, Spese extra</p>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-black text-blue-600 tabular-nums">{formatCurrency(totalNettuno)}</span>
             <span className="text-xs text-slate-400 bg-white rounded-full px-3 py-1 border border-blue-100">
