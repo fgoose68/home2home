@@ -1,3 +1,3 @@
-# home2home - creata con Bol!!
+# home2home - creata con Bolt_!!
 
 [![Open in Bolt](https://bolt.new/static/open-in-bolt.svg)](https://bolt.new/~/sb1-tx8rjapt)
