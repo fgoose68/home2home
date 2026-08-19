@@ -246,6 +246,11 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Version */}
+      <div className="text-center text-xs text-slate-400 pt-2">
+        Ver.20.3Ago2026
+      </div>
+
       {/* Help card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
         <h3 className="font-semibold text-slate-700">Come funziona</h3>
