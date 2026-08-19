@@ -1,5 +1,5 @@
 # H2H — Home2Home
-## Manuale Utente · Ver. 8.1 · Luglio 2026
+## Manuale Utente · Ver. 20.3 · Agosto 2026
 
 ---
 
@@ -78,11 +78,9 @@ La Dashboard è la pagina principale, accessibile tramite l'icona Home nella nav
 - Clic sulla card Roma apre direttamente la pagina Appartamento Roma
 - Clic sulla card Nettuno apre direttamente la pagina Appartamento Nettuno
 
-**Grafico a barre**
-- Confronto spese per categoria nell'anno corrente (tutte le categorie di entrambi gli appartamenti)
-
-**Tabella dettaglio categorie**
-- Importo per categoria con barra proporzionale
+**Grafici a barre per appartamento**
+- Due grafici affiancati: uno per Roma e uno per Nettuno
+- Le categorie sono ordinate allo stesso modo in entrambi: prima **Condominio**, poi **Energia**, quindi le altre per importo decrescente
 
 **Ultime spese registrate**
 - Le 5 spese più recenti con categoria, appartamento, importo e stato pagamento
@@ -348,7 +346,7 @@ L'applicazione è ottimizzata per:
 | **Frontend** | React + Vite + Tailwind CSS |
 | **Storage documenti** | Supabase Storage (bucket privato, URL firmati) |
 | **Autenticazione** | Session storage locale (credenziali fisse) |
-| **Versione** | 8.1 — Luglio 2026 |
+| **Versione** | 20.3 — Agosto 2026 |
 
 ---
 
@@ -444,4 +442,4 @@ Questo fa sì che Docker utilizzi direttamente SIGKILL invece di SIGTERM, elimin
 
 ---
 
-*Manuale generato il 08/07/2026 — H2H Home2Home · Ver. 8.1*
+*Manuale generato il 19/08/2026 — H2H Home2Home · Ver. 20.3*
