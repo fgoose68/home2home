@@ -9,10 +9,11 @@ interface ExpenseListProps {
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (expense: Expense) => void;
+  sortByDueDate?: boolean;
 }
 
-export default function ExpenseList({ expenses, categories, onEdit, onDelete, onToggleStatus }: ExpenseListProps) {
-  const [sortField, setSortField] = useState<'expense_date' | 'amount' | 'category'>('expense_date');
+export default function ExpenseList({ expenses, categories, onEdit, onDelete, onToggleStatus, sortByDueDate }: ExpenseListProps) {
+  const [sortField, setSortField] = useState<'expense_date' | 'amount' | 'category' | 'due_date'>('expense_date');
   const [sortAsc, setSortAsc] = useState(false);
 
   if (expenses.length === 0) {
@@ -30,16 +31,24 @@ export default function ExpenseList({ expenses, categories, onEdit, onDelete, on
     else { setSortField(field); setSortAsc(false); }
   }
 
+  const effectiveSortField = sortByDueDate ? 'due_date' : sortField;
+  const effectiveSortAsc = sortByDueDate ? true : sortAsc;
+
   const sorted = [...expenses].sort((a, b) => {
     let cmp = 0;
-    if (sortField === 'expense_date') cmp = a.expense_date.localeCompare(b.expense_date);
-    else if (sortField === 'amount') cmp = a.amount - b.amount;
+    if (effectiveSortField === 'expense_date') cmp = a.expense_date.localeCompare(b.expense_date);
+    else if (effectiveSortField === 'due_date') {
+      const da = a.due_date ?? a.expense_date;
+      const db = b.due_date ?? b.expense_date;
+      cmp = da.localeCompare(db);
+    }
+    else if (effectiveSortField === 'amount') cmp = a.amount - b.amount;
     else {
       const ca = categories.find((c) => c.id === a.category_id)?.name ?? '';
       const cb = categories.find((c) => c.id === b.category_id)?.name ?? '';
       cmp = ca.localeCompare(cb);
     }
-    return sortAsc ? cmp : -cmp;
+    return effectiveSortAsc ? cmp : -cmp;
   });
 
   function SortIcon({ field }: { field: typeof sortField }) {

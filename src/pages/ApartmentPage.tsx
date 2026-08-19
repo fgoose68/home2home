@@ -272,6 +272,7 @@ export default function ApartmentPage({ location }: ApartmentPageProps) {
         onEdit={(e) => { setEditingExpense(e); setShowForm(true); }}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}
+        sortByDueDate={filters.status === 'pending'}
       />
 
       {/* Form modal */}
