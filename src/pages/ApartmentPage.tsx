@@ -86,7 +86,7 @@ export default function ApartmentPage({ location }: ApartmentPageProps) {
   }, [location]);
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter((e) => {
+    const result = expenses.filter((e) => {
       if (filters.year !== null && e.year !== filters.year) return false;
       if (filters.categoryId && e.category_id !== filters.categoryId) return false;
       if (filters.status !== 'all' && e.status !== filters.status) return false;
@@ -101,6 +101,10 @@ export default function ApartmentPage({ location }: ApartmentPageProps) {
       }
       return true;
     });
+    if (filters.status === 'pending') {
+      result.sort((a, b) => new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime());
+    }
+    return result;
   }, [expenses, filters, categories]);
 
   async function handleSave(data: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) {
