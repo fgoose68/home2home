@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 
 interface LoginPageProps {
@@ -11,12 +11,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const today = new Date().toLocaleDateString('it-IT', { dateStyle: 'full' });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -185,7 +180,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           Roma &amp; Nettuno &nbsp;·&nbsp; <span className="text-slate-500 font-medium">Ver.20.1Agos2026</span>
         </p>
         <p className="text-center text-slate-600 text-xs mt-1">
-          {now.toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'medium' })}
+          {today}
         </p>
       </div>
     </div>
