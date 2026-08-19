@@ -102,7 +102,11 @@ export default function ApartmentPage({ location }: ApartmentPageProps) {
       return true;
     });
     if (filters.status === 'pending') {
-      result.sort((a, b) => new Date(a.expense_date).getTime() - new Date(b.expense_date).getTime());
+      result.sort((a, b) => {
+        const da = a.due_date ? new Date(a.due_date).getTime() : new Date(a.expense_date).getTime();
+        const db = b.due_date ? new Date(b.due_date).getTime() : new Date(b.expense_date).getTime();
+        return da - db;
+      });
     }
     return result;
   }, [expenses, filters, categories]);
