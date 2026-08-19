@@ -7,31 +7,28 @@ interface BarChartProps {
 }
 
 export default function BarChart({ data, title, height = 160 }: BarChartProps) {
-  const max = Math.max(...data.map((d) => d.value), 1);
+  const sorted = [...data].sort((a, b) => b.value - a.value);
+  const max = Math.max(...sorted.map((d) => d.value), 1);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-700 mb-4">{title}</h3>
-      <div className="flex items-end gap-2" style={{ height }}>
-        {data.map((item) => {
+      <div className="space-y-2.5" style={{ maxHeight: height * 3, overflowY: 'auto' }}>
+        {sorted.map((item) => {
           const pct = (item.value / max) * 100;
           return (
-            <div key={item.color + item.label} className="flex flex-col items-center flex-1 min-w-0 group" style={{ height }}>
-              <div className="relative w-full flex flex-col items-center justify-end flex-1">
-                <div
-                  className="w-full rounded-t-lg transition-all duration-500 ease-out cursor-default"
-                  style={{ height: `${Math.max(pct, 2)}%`, backgroundColor: item.color, opacity: 0.85 }}
-                  title={`${item.label.replace('\n', ' ')}: ${formatCurrency(item.value)}`}
-                />
-                {/* Tooltip on hover */}
-                <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none z-10">
+            <div key={item.color + item.label} className="group">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-slate-600 truncate pr-2">{item.label}</span>
+                <span className="text-xs font-semibold text-slate-800 tabular-nums whitespace-nowrap">
                   {formatCurrency(item.value)}
-                </div>
-              </div>
-              <div className="h-8 flex items-start justify-center pt-0.5 w-full">
-                <span className="text-xs text-slate-500 text-center whitespace-pre-wrap leading-tight">
-                  {item.label}
                 </span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-2.5 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: item.color }}
+                />
               </div>
             </div>
           );

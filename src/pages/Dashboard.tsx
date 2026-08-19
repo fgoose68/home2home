@@ -68,21 +68,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const totalPaid = expenses.filter((e) => e.status === 'paid').reduce((s, e) => s + Number(e.amount), 0);
   const totalPending = expenses.filter((e) => e.status === 'pending').reduce((s, e) => s + Number(e.amount), 0);
 
-  // Bar chart: totals by category with apartment disambiguation
-  const nameCount = categories.reduce<Record<string, number>>((acc, c) => {
-    acc[c.name] = (acc[c.name] ?? 0) + 1;
-    return acc;
-  }, {});
-  const catTotals = categories.map((cat) => {
-    const apt = apartments.find((a) => a.id === cat.apartment_id);
-    const isDuplicate = (nameCount[cat.name] ?? 0) > 1;
-    const label = isDuplicate && apt ? `${cat.name}\n${apt.location}` : cat.name;
-    return {
-      label,
+  // Bar chart: totals by category, split per apartment
+  const romaCatTotals = categories
+    .filter((c) => c.apartment_id === roma?.id)
+    .map((cat) => ({
+      label: cat.name,
       value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
       color: cat.color,
-    };
-  }).filter((d) => d.value > 0);
+    }))
+    .filter((d) => d.value > 0);
+
+  const nettunoCatTotals = categories
+    .filter((c) => c.apartment_id === nettuno?.id)
+    .map((cat) => ({
+      label: cat.name,
+      value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
+      color: cat.color,
+    }))
+    .filter((d) => d.value > 0);
+
+  const allCatTotals = [...romaCatTotals, ...nettunoCatTotals];
 
   // Recent expenses
   const recent = [...expenses]
@@ -195,19 +200,28 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* Charts row */}
-      {catTotals.length > 0 && (
+      {allCatTotals.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <BarChart
-            title={`Spese per categoria — ${CURRENT_YEAR}`}
-            data={catTotals}
-            height={180}
-          />
+          {romaCatTotals.length > 0 && (
+            <BarChart
+              title={`Roma — Spese per categoria ${CURRENT_YEAR}`}
+              data={romaCatTotals}
+              height={180}
+            />
+          )}
+          {nettunoCatTotals.length > 0 && (
+            <BarChart
+              title={`Nettuno — Spese per categoria ${CURRENT_YEAR}`}
+              data={nettunoCatTotals}
+              height={180}
+            />
+          )}
 
           {/* Category breakdown table */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm lg:col-span-2">
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Dettaglio per categoria</h3>
-            <div className="space-y-2">
-              {catTotals.sort((a, b) => b.value - a.value).map((item) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              {allCatTotals.sort((a, b) => b.value - a.value).map((item) => (
                 <div key={item.label} className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="flex-1 text-sm text-slate-600">{item.label}</span>
