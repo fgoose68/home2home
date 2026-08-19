@@ -69,6 +69,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const totalPending = expenses.filter((e) => e.status === 'pending').reduce((s, e) => s + Number(e.amount), 0);
 
   // Bar chart: totals by category, split per apartment
+  const priorityOrder = (label: string) => {
+    const lower = label.toLowerCase();
+    if (lower === 'condominio') return 0;
+    if (lower === 'energia') return 1;
+    return 2;
+  };
+
   const romaCatTotals = categories
     .filter((c) => c.apartment_id === roma?.id)
     .map((cat) => ({
@@ -76,7 +83,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
       color: cat.color,
     }))
-    .filter((d) => d.value > 0);
+    .filter((d) => d.value > 0)
+    .sort((a, b) => {
+      const pa = priorityOrder(a.label);
+      const pb = priorityOrder(b.label);
+      if (pa !== pb) return pa - pb;
+      return b.value - a.value;
+    });
 
   const nettunoCatTotals = categories
     .filter((c) => c.apartment_id === nettuno?.id)
@@ -85,9 +98,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       value: expenses.filter((e) => e.category_id === cat.id).reduce((s, e) => s + Number(e.amount), 0),
       color: cat.color,
     }))
-    .filter((d) => d.value > 0);
-
-  const allCatTotals = [...romaCatTotals, ...nettunoCatTotals];
+    .filter((d) => d.value > 0)
+    .sort((a, b) => {
+      const pa = priorityOrder(a.label);
+      const pb = priorityOrder(b.label);
+      if (pa !== pb) return pa - pb;
+      return b.value - a.value;
+    });
 
   // Recent expenses
   const recent = [...expenses]
@@ -200,7 +217,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* Charts row */}
-      {allCatTotals.length > 0 && (
+      {((romaCatTotals.length > 0) || (nettunoCatTotals.length > 0)) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {romaCatTotals.length > 0 && (
             <BarChart
@@ -216,26 +233,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               height={180}
             />
           )}
-
-          {/* Category breakdown table */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm lg:col-span-2">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Dettaglio per categoria</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-              {allCatTotals.sort((a, b) => b.value - a.value).map((item) => (
-                <div key={item.label} className="flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                  <span className="flex-1 text-sm text-slate-600">{item.label}</span>
-                  <span className="text-sm font-semibold text-slate-800 tabular-nums">{formatCurrency(item.value)}</span>
-                  <div className="w-20 bg-slate-100 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full"
-                      style={{ width: `${(item.value / totalAll) * 100}%`, backgroundColor: item.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

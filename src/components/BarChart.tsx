@@ -7,14 +7,13 @@ interface BarChartProps {
 }
 
 export default function BarChart({ data, title, height = 160 }: BarChartProps) {
-  const sorted = [...data].sort((a, b) => b.value - a.value);
-  const max = Math.max(...sorted.map((d) => d.value), 1);
+  const max = Math.max(...data.map((d) => d.value), 1);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-700 mb-4">{title}</h3>
       <div className="space-y-2.5" style={{ maxHeight: height * 3, overflowY: 'auto' }}>
-        {sorted.map((item) => {
+        {data.map((item) => {
           const pct = (item.value / max) * 100;
           return (
             <div key={item.color + item.label} className="group">
